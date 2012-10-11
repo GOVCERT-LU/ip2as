@@ -55,7 +55,8 @@ def calculate_part_size(file_path):
   :returns:  list -- [bview_file_size, part_size]
   """
   # Try to get 100MB parts or as many parts as there are CPU cores
-  bview_file_size = os.path.getsize(bview_file_path)
+  # @TODO die here if file is 0b
+  bview_file_size = os.path.getsize(file_path)
   parts = bview_file_size / 1000 / 1000 / 100
 
   if parts < multiprocessing.cpu_count():
