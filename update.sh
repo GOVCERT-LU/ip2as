@@ -76,7 +76,7 @@ fi
 
 
 # Parse it all
-pypy bview3asnet.py
+pypy bview2asnet.py
 
 
 exit 0
