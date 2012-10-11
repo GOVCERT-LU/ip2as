@@ -270,10 +270,10 @@ def combine_dict(dict1, dict2):
 
 
 if __name__ == '__main__':
-  if debug:
-    file_chunks = 20
-  else:
-    file_chunks = split_file(bview_file_path)
+  #if debug:
+  #  file_chunks = 20
+  #else:
+  file_chunks = split_file(bview_file_path)
 
   as_names, net_origin_net = get_cidrreport_data(list_as_name_path)
   delegations = parse_rir_data(rir_data_path)
