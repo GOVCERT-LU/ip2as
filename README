@@ -1,0 +1,34 @@
+This project is a collection of scripts for building an IP2AS database.
+Included is a script for hooking into powerdns enabling one to query the
+DNS server for an IP and returning information regarding it's AS
+as well as some details of that AS.
+
+Functionality inspired by the Team Cymru "IP to ASN Mapping" service[0].
+
+
+Uses data from:
+ - ftp.arin.net/pub/stats/arin/delegated-arin-latest
+ - ftp.ripe.net/ripe/stats/delegated-ripencc-latest
+ - ftp.afrinic.net/pub/stats/afrinic/delegated-afrinic-latest
+ - ftp.apnic.net/pub/stats/apnic/delegated-apnic-latest
+ - ftp.lacnic.net/pub/stats/lacnic/delegated-lacnic-latest
+ - http://www.cidr-report.org
+
+
+Dependencies:
+ - python (tested with v2.6) (better performance with pypy)
+ - RIPE's bgpdump[1]
+ - SubnetTree[2]
+ - PowerDNS
+
+
+Setup:
+
+
+Usage:
+
+
+
+[0]: http://www.team-cymru.org/Services/ip-to-asn.html
+[1]: http://www.ris.ripe.net/source/bgpdump/
+[2]: http://bro-ids.org/download/README.pysubnettree.html
