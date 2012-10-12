@@ -31,47 +31,33 @@ import re
 import syslog
 import time
 import SubnetTree
-
-
-########################################
-# Configuration
-net_as_path = '/log/bview_foo/net_as'
-########################################
+from ip2as import IP2AS
+from optparse import OptionParser
+import ConfigParser
 
 
 syslog.openlog(os.path.basename(sys.argv[0]), syslog.LOG_PID)
 syslog.syslog('starting up')
 
 
-def parse(fd, out):
+def parse(fd, out, net_as_path, ttl, domain):
   line = fd.readline().strip()
   if not line.startswith('HELO'):
-      syslog.syslog('FAIL')
-      print >>out, 'FAIL'
-      out.flush()
-      syslog.syslog('received "%s", expected "HELO"' % (line,))
-      sys.exit(1)
+    syslog.syslog('FAIL')
+    print >>out, 'FAIL'
+    out.flush()
+    syslog.syslog('received "%s", expected "HELO"' % (line,))
+    sys.exit(1)
   else:
     print >>out, 'OK\t%s ready' % (os.path.basename(sys.argv[0]),)
     out.flush()
     syslog.syslog('received HELO from PowerDNS')
 
-  net_as = open(net_as_path, 'rb')
-  t1 = SubnetTree.SubnetTree()
-
-  for l in net_as:
-    try:
-      (asn, net, asname, cc, rir, changedate) = l.rstrip().split('|')
-      text = asn + ' | ' + net + ' | ' + asname + ' | ' + cc + ' | ' + rir + ' | ' + changedate
-    except:
-      (asn, net, asname) = l.rstrip().split('|')
-      text = asn + ' | ' + net + ' | ' + asname
-
-    t1.insert(net, text)
+  ip2as = IP2AS(net_as_path)
+  strip_domain = '-' + domain
 
   syslog.syslog('running')
 
-  lastnet = 0
   while True:
     line = fd.readline().strip()
     if not line:
@@ -79,25 +65,28 @@ def parse(fd, out):
 
     request = line.split('\t')
 
-    if len(request) < 6:
+    try:
+      if len(request) == 6:
+        kind, qname, qclass, qtype, qid, ip = request
+      else:
+        kind, qname, qclass, qtype, qid, ip, their_ip = request
+    except:
       print >>out, 'LOG\tPowerDNS sent unparsable line'
       print >>out, 'FAIL'
       out.flush()
       continue
 
-    try:
-      kind, qname, qclass, qtype, qid, ip = request
-    except:
-      kind, qname, qclass, qtype, qid, ip, their_ip = request
-
-    if qtype in ['TXT', 'ANY'] and qname.endswith('-ip2as'):
-      q = qname.rstrip('-ip2as')
+    if qtype in ['TXT', 'ANY'] and qname.endswith(strip_domain):
+      q = qname.rstrip(strip_domain)
 
       try:
-        if t1 and t1[q]:
-          reply = t1[q]
-          answer = 'DATA\t%s\t%s\tTXT\t%d\t-1\t"%s"' % (qname, qclass, 300, reply)
-          print >>out, answer
+        res = ip2as.get(q)
+
+        if res == '':
+          raise Exception('Value error')
+
+        answer = 'DATA\t%s\t%s\tTXT\t%d\t-1\t"%s"' % (qname, qclass, ttl, res)
+        print >>out, answer
       except:
         pass
 
@@ -108,4 +97,29 @@ def parse(fd, out):
 
 
 if __name__ == '__main__':
-    sys.exit(parse(sys.stdin, sys.stdout))
+  parser = OptionParser()
+  parser.add_option("-c", dest="config",
+                  help="configuration file")
+
+  (options, args) = parser.parse_args()
+
+  if not options.config:
+    parser.print_help()
+    exit(1)
+
+  config = ConfigParser.RawConfigParser()
+  config.read(options.config)
+
+  try:
+    ttl = int(config.get('main', 'ttl'))
+    net_as_path = config.get('main', 'net_as_path')
+    domain = config.get('main', 'domain')
+  except ConfigParser.NoOptionError as e:
+    print e
+    exit(1)
+
+  if net_as_path == '':
+    print 'Invalid net_as_path in config file'
+    exit(1)
+
+  sys.exit(parse(sys.stdin, sys.stdout, net_as_path, ttl, domain))
