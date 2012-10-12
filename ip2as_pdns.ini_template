@@ -1,0 +1,4 @@
+[main]
+ttl=300
+net_as_path=net_as
+domain=ip2as
