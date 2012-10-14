@@ -32,7 +32,6 @@ import syslog
 import time
 import SubnetTree
 from ip2as import IP2AS
-from optparse import OptionParser
 import ConfigParser
 
 
@@ -97,18 +96,8 @@ def parse(fd, out, net_as_path, ttl, domain):
 
 
 if __name__ == '__main__':
-  parser = OptionParser()
-  parser.add_option("-c", dest="config",
-                  help="configuration file")
-
-  (options, args) = parser.parse_args()
-
-  if not options.config:
-    parser.print_help()
-    exit(1)
-
   config = ConfigParser.RawConfigParser()
-  config.read(options.config)
+  config.read('/etc/ip2as_pdns.ini')
 
   try:
     ttl = int(config.get('main', 'ttl'))
