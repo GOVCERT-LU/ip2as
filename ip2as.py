@@ -29,7 +29,7 @@ class IP2AS(object):
       m = re.match(r'^(\d+)\|([^|]+)\|(.*)$', l)
       if m:
         net = m.group(2)
-        text = m.group(1) + '|' + m.group(3)
+        text = l
         self.net_as.insert(net, text)
       else:
         # @TODO what to do if no match
