@@ -315,7 +315,7 @@ if __name__ == '__main__':
       elif net in net_origin_net and net_origin_net[net] in delegations:
         moreinfo = '|' + delegations[net_origin_net[net]]
       else:
-        moreinfo = ''
+        moreinfo = '|'
     except Exception as e:
       if debug:
         print 'Exception while parsing', net
