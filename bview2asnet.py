@@ -149,7 +149,7 @@ def get_cidrreport_data(file_path):
   net_origin_net = {}
   for l in asnames:
     (net, origin_net, asn, asname) = l.rstrip().split('|')
-    as_names[asn] = asname
+    as_names[asn] = asname.replace('"', '')
     net_origin_net[net] = origin_net
   asnames.close()
 
