@@ -53,7 +53,7 @@ def parse(fd, out, net_as_path, ttl, domain):
     syslog.syslog('received HELO from PowerDNS')
 
   ip2as = IP2AS(net_as_path)
-  strip_domain = '-' + domain
+  strip_domain = '.' + domain
 
   syslog.syslog('running')
 
