@@ -37,7 +37,7 @@ class IP2AS(object):
 
   def get(self, ip):
     try:
-      return self.net_as[ip].text
+      return self.getobj.text
     except:
       return ''
 
