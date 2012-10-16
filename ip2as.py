@@ -26,12 +26,11 @@ class IP2AS(object):
     self.net_as = SubnetTree.SubnetTree()
 
     for l in net_as_file:
-      m = re.match(r'^(\d+)\|([^|]+)\|(.*)$', l)
-      if m:
-        net = m.group(2)
+      try:
         ipdescr = IPDescr(l.rstrip())
+        net = ipdescr.net
         self.net_as.insert(net, ipdescr)
-      else:
+      except Exception as e:
         # @TODO what to do if no match
         # should not happen but does happen
         pass
