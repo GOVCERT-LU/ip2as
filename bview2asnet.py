@@ -27,7 +27,7 @@ import re
 ##############################
 # Configuration
 debug = True
-bview_file_path = 'bview'
+bview_file_path = 'll'
 ip2as_file_path = 'net_as'
 list_as_name_path = 'list_as_name.txt'
 rir_data_path = 'delegations'
@@ -86,7 +86,7 @@ def get_chunk_end_pos(start_pos, chunk_size, f_file, condition='\n'):
   while 1:
     l = f_file.readline()
 
-    if not l or l == '\n':
+    if not l or not condition or l == condition:
       break
 
   chunk_pos = f_file.tell()
@@ -191,6 +191,8 @@ def parse_rir_data(file_path):
 
 def parse_block(block):
   """Parse a block from the bview file
+     0           1          2 3         4    5          6                                    7   8         9 10 11        12  13
+     TABLE_DUMP2|1343808000|B|12.0.1.63|7018|1.0.4.0/22|7018 701 703 38809 56203 56203 56203|IGP|12.0.1.63|0|0 |7018:5000|NAG||
 
   :param block: Contains one block to parse.
   :type block: str.
@@ -199,15 +201,19 @@ def parse_block(block):
   prefix = ''
   asn = ''
 
-  m = re.search(r'PREFIX: (.*)', block)
-  if m:
-    prefix = m.group(1)
+  row = block.split('|')
 
-  m = re.search(r'ASPATH: (?:\d+\s){0,}(\d+)', block)
-  if m:
-    asn = int(m.group(1))
+  if row[7] == 'INCOMPLETE' or row[6] == '':
+    return None
 
-  return [prefix, asn]
+  if '{' in row[6]:
+    asn = row[6].split(' ')[-2]
+  else:
+    asn = row[6].split(' ')[-1]
+
+  prefix = row[5]
+
+  return [prefix, int(asn)]
 
 
 def process_chunks(f_name):
@@ -228,26 +234,25 @@ def process_chunks(f_name):
   inblock = False
   block = ''
 
-  for l in f:
-    l = l.rstrip()
+  try:
+    for l in f:
+      l = l.rstrip()
 
-    if not inblock and not l == '':
-      inblock = True
-      block += l + '\n'
-    elif inblock and not l == '':
-      block += l + '\n'
-    elif l == '':
-      inblock = False
+      res = parse_block(l)
+      if not res:
+        continue
+      prefix, asn = res
 
-      if not block == '':
-        (prefix, asn) = parse_block(block)
-        block = ''
+      if not prefix or prefix == '0.0.0.0/0':
+        continue
 
-        if prefix == '0.0.0.0/0':
-          continue
-
-        if not prefix in net_as:
-          net_as[prefix] = asn
+      if not prefix in net_as:
+        net_as[prefix] = asn
+  except Exception as e:
+    import sys
+    import traceback
+    print >> sys.stderr , 'EXCEPTION OCCURED: %s' % e
+    traceback.print_tb(sys.exc_traceback)
 
   f.close()
 
@@ -272,9 +277,10 @@ def combine_dict(dict1, dict2):
 
 if __name__ == '__main__':
   #if debug:
-  #  file_chunks = 20
+  #  file_chunks = 10
   #else:
-  file_chunks = split_file(bview_file_path)
+  #file_chunks = split_file(bview_file_path)
+  file_chunks = split_file(bview_file_path, None)
 
   as_names, net_origin_net = get_cidrreport_data(list_as_name_path)
   delegations = parse_rir_data(rir_data_path)
