@@ -33,7 +33,7 @@ compare_files()
 
 
 
-# Generate AS/Name DB
+# Generate msprefix list
 wget -O - http://www.cidr-report.org/as2.0/msprefix-list.html | ./parse_msprefix.pl | sort | uniq > list_as_name.txt_new
 
 if ! compare_files list_as_name.txt list_as_name.txt_new $MAXDIFF
@@ -42,6 +42,18 @@ then
   exit 1
 else
   mv list_as_name.txt_new list_as_name.txt
+fi
+
+
+# Generate AS/Name DB
+wget -O - http://www.cidr-report.org/as2.0/autnums.html | perl parse_autnums.pl > list_autnums.txt_new
+
+if ! compare_files list_autnums.txt list_autnums.txt_new $MAXDIFF
+then
+  echo "Too many changes for AS/Name DB ... exiting"
+  exit 1
+else
+  mv list_autnums.txt_new list_autnums.txt
 fi
 
 

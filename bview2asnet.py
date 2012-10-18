@@ -29,7 +29,8 @@ import re
 debug = True
 bview_file_path = 'bview'
 ip2as_file_path = 'net_as'
-list_as_name_path = 'list_as_name.txt'
+list_msprefix_path = 'list_as_name.txt'
+list_autnums_path = 'list_autnums.txt'
 rir_data_path = 'delegations'
 ##############################
 
@@ -137,20 +138,27 @@ def split_file(file_path, condition='\n'):
 ##############################
 # Parse AS name and delegation info
 # retrieved from cidr-report
-def get_cidrreport_data(file_path):
+def get_cidrreport_data(msprefix_path, autnums_path):
   """Parse cidr-report data
 
-  :param file_path: The file to be split.
+  :param msprefix_path: msprefix list.
+  :param autnums_path: autnums list.
   :type file_path: str.
   :returns list -- [as_names, net_origin_net]
   """
-  asnames = open(file_path, 'rb')
+  asnames = open(msprefix_path, 'rb')
   as_names = {}
   net_origin_net = {}
   for l in asnames:
     (net, origin_net, asn, asname) = l.rstrip().split('|')
     as_names[asn] = asname.replace('"', '')
     net_origin_net[net] = origin_net
+  asnames.close()
+
+  asnames = open(autnums_path, 'rb')
+  for l in asnames:
+    (asn, asname) = l.rstrip().split('|')
+    as_names[asn] = asname.replace('"', '')
   asnames.close()
 
   return [as_names, net_origin_net]
@@ -282,7 +290,7 @@ if __name__ == '__main__':
   #file_chunks = split_file(bview_file_path)
   file_chunks = split_file(bview_file_path, None)
 
-  as_names, net_origin_net = get_cidrreport_data(list_as_name_path)
+  as_names, net_origin_net = get_cidrreport_data(list_msprefix_path, list_autnums_path)
   delegations = parse_rir_data(rir_data_path)
 
   # Setup process pool and submit jobs for processing
