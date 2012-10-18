@@ -19,13 +19,15 @@ Dependencies:
  - python (tested with v2.6) (better performance with pypy)
  - RIPE's bgpdump[1]
  - SubnetTree[2]
- - PowerDNS
+ - PowerDNS (optional)
 
 
 Setup:
-
+ - setup a cronjob to regularly call "update.sh"
 
 Usage:
+ 1. use the powerdns pipebackend
+ 2. use the python module as shown in ip2as.py at the bottom
 
 
 
