@@ -27,7 +27,7 @@ import re
 ##############################
 # Configuration
 debug = True
-bview_file_path = 'll'
+bview_file_path = 'bview'
 ip2as_file_path = 'net_as'
 list_as_name_path = 'list_as_name.txt'
 rir_data_path = 'delegations'
