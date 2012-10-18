@@ -46,8 +46,7 @@ fi
 
 
 # Get latest bview DB
-wget -O - http://data.ris.ripe.net/rrc00/latest-bview.gz | gzip -dc > latest-bview
-bgpdump latest-bview > bview_new
+wget -O - http://data.ris.ripe.net/rrc00/latest-bview.gz | zcat -dc | bgpdump -v -m > bview_new
 
 if ! compare_files bview bview_new $MAXDIFF
 then
