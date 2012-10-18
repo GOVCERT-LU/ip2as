@@ -78,4 +78,8 @@ fi
 pypy bview2asnet.py
 
 
+# Cleanup
+rm target_*
+
+
 exit 0
