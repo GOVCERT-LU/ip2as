@@ -17,7 +17,6 @@
 
 
 import SubnetTree
-import re
 
 
 class IP2AS(object):
@@ -34,6 +33,8 @@ class IP2AS(object):
         # @TODO what to do if no match
         # should not happen but does happen
         pass
+
+    net_as_file.close()
 
   def get(self, ip):
     try:
