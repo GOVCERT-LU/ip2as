@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # This file is part of ip2as.
@@ -70,5 +71,16 @@ class IPDescr(object):
 if __name__ == '__main__':
   ip2as = IP2AS('net_as')
 
-  print ip2as.get('194.154.205.135')
-  print ip2as.getobj('194.154.205.135').asn
+  import sys
+  import re
+
+  try:
+    for l in sys.stdin:
+      if l.endswith('\n'):
+        if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', l):
+          print ip2as.get(l[:-1])
+        else:
+          print 'Invalid IP ->', l[:-1]
+  except KeyboardInterrupt:
+    sys.stdout.flush()
+
