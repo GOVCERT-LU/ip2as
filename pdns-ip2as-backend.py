@@ -39,7 +39,7 @@ syslog.openlog(os.path.basename(sys.argv[0]), syslog.LOG_PID)
 syslog.syslog('starting up')
 
 
-def parse(fd, out, net_as_path, ttl, domain):
+def parse(fd, out, net_as_path, ttl, domain, lifetime):
   line = fd.readline().strip()
   if not line.startswith('HELO'):
     syslog.syslog('FAIL')
@@ -56,6 +56,8 @@ def parse(fd, out, net_as_path, ttl, domain):
   strip_domain = '.' + domain
 
   syslog.syslog('running')
+
+  count = 0
 
   while True:
     line = fd.readline().strip()
@@ -92,6 +94,15 @@ def parse(fd, out, net_as_path, ttl, domain):
     print >>out, 'END'
     out.flush()
 
+
+    if not lifetime == -1:
+      count += 1
+      if count >= lifetime:
+        print >>out, 'FAIL'
+        syslog.syslog('Maximum lifetime reached, exiting')
+        out.flush()
+        sys.exit(-1)
+
   return 0
 
 
@@ -103,6 +114,7 @@ if __name__ == '__main__':
     ttl = int(config.get('main', 'ttl'))
     net_as_path = config.get('main', 'net_as_path')
     domain = config.get('main', 'domain')
+    lifetime = int(config.get('main', 'lifetime'))
   except ConfigParser.NoOptionError as e:
     print e
     exit(1)
@@ -111,4 +123,4 @@ if __name__ == '__main__':
     print 'Invalid net_as_path in config file'
     exit(1)
 
-  sys.exit(parse(sys.stdin, sys.stdout, net_as_path, ttl, domain))
+  sys.exit(parse(sys.stdin, sys.stdout, net_as_path, ttl, domain, lifetime))
