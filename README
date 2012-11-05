@@ -27,6 +27,8 @@ Setup:
 
 Usage:
  1. use the powerdns pipebackend
+    e.g.
+    dig +short txt <ip>.<ip2as-domain> @<server>
  2. use the python module as shown in ip2as.py at the bottom
 
 
