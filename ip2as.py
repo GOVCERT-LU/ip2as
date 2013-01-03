@@ -18,69 +18,86 @@
 
 
 import SubnetTree
+import mmap
+
+try:
+  import msgpack
+  import_msgpack = True
+except:
+  import_msgpack = False
+
 
 
 class IP2AS(object):
-  def __init__(self, data_path):
-    net_as_file = open(data_path, 'rb')
+  def __init__(self, data_path, use_msgpack=False):
+    if use_msgpack and not import_msgpack:
+      raise Exception('Fatal error: specified to use msgpack, but msgpack module not installed')
+
+    self.net_as_file = open(data_path, 'rb')
     self.net_as = SubnetTree.SubnetTree()
 
-    for l in net_as_file:
+    if use_msgpack:
+      self.init_from_msgpack()
+    else:
+      self.init_from_csv()
+
+    self.net_as_file.close()
+
+  def init_from_csv(self):
+    net_as_mmap = mmap.mmap(self.net_as_file.fileno(), 0, flags=mmap.MAP_PRIVATE, prot=mmap.PROT_READ)
+
+    for l in iter(net_as_mmap.readline, ''):
       try:
-        ipdescr = IPDescr(l.rstrip())
-        net = ipdescr.net
-        self.net_as.insert(net, ipdescr)
+        ipdescr = self.parse_line(l[:-1])
+        self.net_as.insert(ipdescr['n'], ipdescr)
+      except ValueError:
+        print 'Value error: this mostly indicates that you are trying to use\
+ a binary data file but did not specify to use msgpack\n'
+        raise
       except Exception as e:
         # @TODO what to do if no match
         # should not happen but does happen
+        print e
         pass
 
-    net_as_file.close()
+    net_as_mmap.close()
+
+  def init_from_msgpack(self):
+    ip2as_list = msgpack.unpack(self.net_as_file, use_list=False)
+
+    for k in ip2as_list:
+      try:
+        self.net_as.insert(k['n'], k)
+      except Exception as e:
+        # @TODO what to do if no match
+        # should not happen but does happen
+        print e
+        pass
 
   def get(self, ip):
     try:
-      return self.getobj(ip).text
-    except:
-      return ''
+      ipdescr = self.net_as[ip]
 
-  def getobj(self, ip):
-    try:
-      return self.net_as[ip]
-    except:
-      return None
+      return '{0}|{1}|{2}|{3}|{4}|{5}'.format(ipdescr['a'], ipdescr['n'],
+        ipdescr['d'], ipdescr['c'], ipdescr['r'], ipdescr['u'])
+    except KeyError:
+      return '{0} not found'.format(ip)
 
+  def parse_line(self, ip2as_line):
+    asn, net, descr, cc, rir, update = ip2as_line.split('|')
 
-class IPDescr(object):
-  def __init__(self, ipas_line):
-    # 8966|88.221.217.0/24|ETISALAT-AS Emirates Telecommunications Corporation|EU|ripencc|20060201
-    self.asn = ''
-    self.net = ''
-    self.descr = ''
-    self.cc = ''
-    self.rir = ''
-    self.update = ''
+    if update == '':
+      update = 0
+    else:
+      update = int(update)
 
-    self.setdata(ipas_line)
+    # a: asn, n: net, d: descr, c: cc, r: rir, u: update
+    return {'a' : asn, 'n' : net, 'd' : descr, 'c' : cc,
+            'r' : rir, 'u' : update}
 
-  def setdata(self, ipas_line):
-    self.asn, self.net, self.descr, self.cc, self.rir, self.update = ipas_line.split('|')
-    self.text = ipas_line
-    return ipas_line
 
 
 if __name__ == '__main__':
-  ip2as = IP2AS('net_as')
-
-  import sys
-  import re
-
-  try:
-    for l in sys.stdin:
-      if l.endswith('\n'):
-        if re.match(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$', l):
-          print ip2as.get(l[:-1])
-        else:
-          print 'Invalid IP ->', l[:-1]
-  except KeyboardInterrupt:
-    sys.stdout.flush()
-
+  ip2as = IP2AS('net_as.bin', use_msgpack=True)
+  ip = '192.0.43.10'
+  print ip2as.get(ip)
