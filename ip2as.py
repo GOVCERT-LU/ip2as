@@ -76,12 +76,19 @@ class IP2AS(object):
 
   def get(self, ip):
     try:
-      ipdescr = self.net_as[ip]
+      ipdescr = self.get_dict(ip)
 
       return '{0}|{1}|{2}|{3}|{4}|{5}'.format(ipdescr['a'], ipdescr['n'],
         ipdescr['d'], ipdescr['c'], ipdescr['r'], ipdescr['u'])
     except KeyError:
       return '{0} not found'.format(ip)
+
+  def get_dict(self, ip):
+    try:
+      return self.net_as[ip]
+    except KeyError:
+      print '{0} not found'.format(ip)
+      raise
 
   def parse_line(self, ip2as_line):
     asn, net, descr, cc, rir, update = ip2as_line.split('|')
