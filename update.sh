@@ -90,6 +90,10 @@ fi
 pypy bview2asnet.py
 
 
+# Convert it to msgpack format
+python netas_csv2msgpack.py
+
+
 # Cleanup
 rm target_*
 
