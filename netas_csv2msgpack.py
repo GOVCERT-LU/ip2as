@@ -18,7 +18,11 @@
 
 
 import mmap
-import msgpack
+try:
+  import msgpack
+except:
+  print '  -> msgpack not installed, skipping msgpack creation'
+  exit(1)
 
 
 def parse_line(ip2as_line):
