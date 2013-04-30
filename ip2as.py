@@ -51,14 +51,14 @@ class IP2AS(object):
         ipdescr = self.parse_line(l[:-1])
         self.net_as.insert(ipdescr['n'], ipdescr)
       except ValueError:
-        print 'Value error: this mostly indicates that you are trying to use\
- a binary data file but did not specify to use msgpack\n'
-        raise
+        raise Exception('Value error: this mostly indicates that you are trying to use\
+ a binary data file but did not specify to use msgpack\n')
       except Exception as e:
         # @TODO what to do if no match
         # should not happen but does happen
-        print e
-        pass
+        #print e
+        #pass
+        raise
 
     net_as_mmap.close()
 
@@ -71,8 +71,9 @@ class IP2AS(object):
       except Exception as e:
         # @TODO what to do if no match
         # should not happen but does happen
-        print e
-        pass
+        #print e
+        #pass
+        raise
 
   def get(self, ip):
     try:
@@ -81,14 +82,13 @@ class IP2AS(object):
       return '{0}|{1}|{2}|{3}|{4}|{5}'.format(ipdescr['a'], ipdescr['n'],
         ipdescr['d'], ipdescr['c'], ipdescr['r'], ipdescr['u'])
     except KeyError:
-      return '{0} not found'.format(ip)
+      raise Exception('{0} not found'.format(ip))
 
   def get_dict(self, ip):
     try:
       return self.net_as[ip]
     except KeyError:
-      print '{0} not found'.format(ip)
-      raise
+      raise Exception('{0} not found'.format(ip))
 
   def parse_line(self, ip2as_line):
     asn, net, descr, cc, rir, update = ip2as_line.split('|')
@@ -105,6 +105,17 @@ class IP2AS(object):
 
 
 if __name__ == '__main__':
-  ip2as = IP2AS('net_as.bin', use_msgpack=True)
+  import ConfigParser
+
+  # Get ctienet path
+  config = ConfigParser.RawConfigParser()
+  config.read('/opt/govcert/etc/govcert_paths.ini')
+  ini_path = config.get('main', 'ini')
+  config.read(ini_path + '/' + 'ip2as.ini')
+  ip2as_dat = config.get('main', 'ip2as_bin_dat')
+  ####################
+
+  ip2as = IP2AS(ip2as_dat, use_msgpack=True)
+
   ip = '192.0.43.10'
   print ip2as.get(ip)
