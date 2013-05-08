@@ -61,7 +61,9 @@ def parse(fd, out, net_as_path, ttl, domain, lifetime):
 
   while True:
     line = fd.readline().strip()
+
     if not line:
+      syslog.syslog('breaking')
       break
 
     request = line.split('\t')
@@ -90,6 +92,11 @@ def parse(fd, out, net_as_path, ttl, domain, lifetime):
         print >>out, answer
       except:
         pass
+    elif qtype in ['SOA'] and qname.endswith(strip_domain):
+      q = qname.rstrip(strip_domain)
+      res = '{0} hostmaster.{0} 1 60 60 60 60'.format(strip_domain)
+      answer = 'DATA\t%s\t%s\tTXT\t%d\t-1\t"%s"' % (qname, qclass, ttl, res)
+      print >>out, answer
 
     print >>out, 'END'
     out.flush()

@@ -1,4 +1,4 @@
 launch=pipe
 pipe-command=/path/to/pdns-ip2as-backend.py
 pipe-timeout=5000
-pipe-regex=^.*\.ip2as;(TXT|ANY)$
+pipe-regex=^.*\.ip2as;(TXT|ANY|SOA)$
