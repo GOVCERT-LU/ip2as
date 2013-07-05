@@ -175,25 +175,28 @@ def parse_rir_data(file_path):
   :returns list -- Delegations.
   """
   delegations = open(file_path, 'rb')
-  delegations_ = {}
+  ip_del = {}
+  as_del = {}
   for l in delegations:
+    #   arin   |US|asn |20         |1    |19840727|allocated
     #   afrinic|GH|ipv4|41.57.192.0|16384|20111215|allocated
     try:
       (rir, cc, iptype, net, ipcount,
           changedate, status) = l.rstrip().split('|')
 
-      if not (iptype == 'ipv4' or iptype == 'ipv6'):
-        continue
+      if iptype == 'ipv4' or iptype == 'ipv6':
+        if not ':' in net:
+          net = net + '/' + cidr_sizes_4[ipcount]
 
-      if not ':' in net:
-        net = net + '/' + cidr_sizes_4[ipcount]
-
-      delegations_[net] = cc + '|' + rir + '|' + changedate
+        ip_del[net] = cc + '|' + rir + '|' + changedate
+      elif iptype == 'asn':
+        as_del[int(net)] = '{1}{0}{2}{0}{3}'.format('|', cc, rir, changedate)
     except Exception as e:
+      #print e
       pass
   delegations.close()
 
-  return delegations_
+  return ip_del, as_del
 ##############################
 
 
@@ -291,7 +294,7 @@ if __name__ == '__main__':
   file_chunks = split_file(bview_file_path, None)
 
   as_names, net_origin_net = get_cidrreport_data(list_msprefix_path, list_autnums_path)
-  delegations = parse_rir_data(rir_data_path)
+  ip_del, as_del = parse_rir_data(rir_data_path)
 
   # Setup process pool and submit jobs for processing
   pool = Pool()
@@ -318,16 +321,15 @@ if __name__ == '__main__':
   # Write the result to a file.
   out = open(ip2as_file_path, 'wb')
   for net, asn in net_as.items():
-    if str(asn) in as_names:
-      name = as_names[str(asn)]
-    else:
-      name = ''
+    name = as_names.get(str(asn), '')
 
     try:
-      if net in delegations:
-        moreinfo = '|' + delegations[net]
-      elif net in net_origin_net and net_origin_net[net] in delegations:
-        moreinfo = '|' + delegations[net_origin_net[net]]
+      if net in ip_del:
+        moreinfo = '|' + ip_del[net]
+      elif net in net_origin_net and net_origin_net[net] in ip_del:
+        moreinfo = '|' + ip_del[net_origin_net[net]]
+      elif asn in as_del:
+        moreinfo = '|' + as_del[asn]
       else:
         moreinfo = '|||'
     except Exception as e:
