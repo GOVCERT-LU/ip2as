@@ -19,7 +19,7 @@ try:
 except ImportError:
   import configparser
 import json
-from ip2as import IP2AS
+from ip2as.ip2as import IP2AS
 
 
 def is_authorized():
