@@ -34,7 +34,7 @@ compare_files()
 
 
 # Generate msprefix list
-wget -O - http://www.cidr-report.org/as2.0/msprefix-list.html | ./parse_msprefix.pl | sort | uniq > list_as_name.txt_new
+wget -O - http://www.cidr-report.org/as2.0/msprefix-list.html | perl parse_msprefix.pl | sort | uniq > list_as_name.txt_new
 
 if ! compare_files list_as_name.txt list_as_name.txt_new $MAXDIFF
 then
@@ -87,15 +87,15 @@ fi
 
 
 # Parse it all
-pypy bview2asnet.py
+python bview2asnet.py > net_as_new
+if ! compare_files net_as net_as_new $MAXDIFF
+then
+  echo "Too many changes for net_as file ... exiting"
+  exit 1
+else
+  mv net_as_new net_as
+fi
 
-
-# Convert it to msgpack format
-python netas_csv2msgpack.py
-
-
-# Cleanup
-rm target_*
 
 
 exit 0
