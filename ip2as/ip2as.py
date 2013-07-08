@@ -74,7 +74,7 @@ class IP2AS(object):
 
       return ret
     except KeyError:
-      raise Exception('{0} not found'.format(ip))
+      raise KeyError('{0} not found'.format(ip))
 
   def getip_str(self, ip):
     nets = self.getip(ip)
