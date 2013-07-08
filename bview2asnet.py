@@ -19,7 +19,7 @@
 
 import os
 import json
-from ip2as import ASN
+from ip2as.asn import ASN
 
 
 ##############################
