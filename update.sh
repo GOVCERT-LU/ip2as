@@ -87,7 +87,14 @@ fi
 
 
 # Parse it all
-pypy bview2asnet.py
+python bview2asnet.py > net_as_new
+if ! compare_files net_as net_as_new $MAXDIFF
+then
+  echo "Too many changes for net_as file ... exiting"
+  exit 1
+else
+  mv net_as_new net_as
+fi
 
 
 
