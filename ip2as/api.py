@@ -11,6 +11,7 @@ __license__ = 'GPL v3+'
 #
 
 import json
+import urllib
 import urllib2
 
 
@@ -27,15 +28,23 @@ class IP2ASApi(object):
       opener = urllib2.build_opener(proxy)
       urllib2.install_opener(opener)
 
-  def __request(self, method, data, extra_headers=None):
+  def __request(self, method, data=None, query_args=None, extra_headers=None):
     url = '{0}/{1}'.format(self.api_url, method)
+
+    if not query_args is None and len(query_args) > 0:
+      url = '{0}/?{1}'.format(url, urllib.urlencode(query_args))
+
+    query_data = None
+    if not data is None:
+      query_data = json.dumps(data)
+
     headers = {'Content-Type': 'application/json; charset=utf-8', 'key' : self.api_key}
 
     if extra_headers:
       for k, v in extra_headers.items():
         headers[k] = v
 
-    r = urllib2.Request(url, data=json.dumps(data), headers=headers)
+    r = urllib2.Request(url, data=query_data, headers=headers)
     try:
       res = urllib2.urlopen(r).read()
     except urllib2.HTTPError, e:
@@ -49,10 +58,10 @@ class IP2ASApi(object):
     return json.loads(res)
 
   def get_asn(self, asn):
-    return self.__request('get_asn', {'asn' : asn})
+    return self.__request('get_asn', query_args={'asn' : asn})
 
   def get_ip(self, ip):
-    return self.__request('get_ip', {'ip' : ip})
+    return self.__request('get_ip', query_args={'ip' : ip})
 
 
 def json_pretty_print(j):

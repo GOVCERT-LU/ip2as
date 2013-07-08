@@ -33,7 +33,7 @@ def is_authorized():
 def audit():
   params = {}
 
-  if cherrypy.request.json:
+  if hasattr(cherrypy.request, 'json') and cherrypy.request.json:
     for k in cherrypy.request.json:
       params[k] = cherrypy.request.json[k]
 
@@ -68,32 +68,28 @@ class Manage(object):
   @cherrypy.tools.is_authorized()
   @cherrypy.tools.json_in()
   @cherrypy.tools.json_out()
-  def get_asn(self):
-    params = cherrypy.request.json
-
+  def get_asn(self, asn):
     try:
-      asn = self.ip2as.getasn(params['asn'])
+      asn_ = self.ip2as.getasn(asn)
     except KeyError:
       raise cherrypy.HTTPError(404, 'Nothing found')
 
     cherrypy.response.status = 200
-    return json.dumps(asn)
+    return json.dumps(asn_)
 
   @cherrypy.expose
   @cherrypy.tools.audit()
   @cherrypy.tools.is_authorized()
   @cherrypy.tools.json_in()
   @cherrypy.tools.json_out()
-  def get_ip(self):
-    params = cherrypy.request.json
-
+  def get_ip(self, ip):
     try:
-      ip = self.ip2as.getip(params['ip'])
+      ip_ = self.ip2as.getip(ip)
     except KeyError:
       raise cherrypy.HTTPError(404, 'Nothing found')
 
     cherrypy.response.status = 200
-    return json.dumps(ip)
+    return json.dumps(ip_)
 
 
 def error_page_403(status, message, traceback, version):
