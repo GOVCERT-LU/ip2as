@@ -63,6 +63,18 @@ class IP2ASApi(object):
   def get_ip(self, ip):
     return self.__request('get_ip', query_args={'ip' : ip})
 
+  def get_ip_str(self, ip):
+    nets = self.get_ip(ip)
+    net = None
+    asns = ''
+
+    for net in nets:
+      if not asns == '':
+        asns += ' '
+      asns += net['asn']
+
+    return '{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}'.format('|', asns, net['net'], net['name'], net['cc'], net['rir'], net['timestamp'])
+
 
 def json_pretty_print(j):
   return json.dumps(j, sort_keys=True, indent=4, separators=(',', ': '))
