@@ -112,7 +112,7 @@ def application(environ, start_response):
 
   config = configparser.ConfigParser()
   config.read(wsgi_config)
-  ip2as_dat = config.get('ip2as', 'ip2as_bin_dat')
+  ip2as_dat = config.get('ip2as', 'ip2as_bin_dat').strip('\'')
 
   ip2as = IP2AS(ip2as_dat)
 
