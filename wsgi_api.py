@@ -22,6 +22,9 @@ import json
 from ip2as.ip2as import IP2AS
 
 
+ip2as_ = None
+
+
 def is_authorized():
   if not cherrypy.request.headers.get('key', '') in cherrypy.config['api_keys']:
     raise cherrypy.HTTPError(403, 'Forbidden')
@@ -56,8 +59,9 @@ def log(msg, priority=syslog.LOG_INFO):
 
 
 class Manage(object):
-  def __init__(self, ip2as):
-    self.ip2as = ip2as
+  def __init__(self):
+    global ip2as_
+    self.ip2as = ip2as_
 
   @cherrypy.expose
   @cherrypy.tools.audit()
@@ -92,7 +96,6 @@ class Manage(object):
     return json.dumps(ip)
 
 
-
 def error_page_403(status, message, traceback, version):
   return 'Error {0} - {1}'.format(status, message)
 
@@ -100,6 +103,8 @@ cherrypy.config.update({'error_page.403': error_page_403})
 
 
 def application(environ, start_response):
+  global ip2as_
+
   syslog.openlog('ip2as_wsgi_server', logoption=syslog.LOG_PID)
   myprefix = os.path.dirname(os.path.abspath(__file__))
   wsgi_config = myprefix + '/wsgi_api.ini'
@@ -114,18 +119,21 @@ def application(environ, start_response):
   config.read(wsgi_config)
   ip2as_dat = config.get('ip2as', 'ip2as_bin_dat').strip('\'')
 
-  ip2as = IP2AS(ip2as_dat)
+  if ip2as_ is None:
+    ip2as_ = IP2AS(ip2as_dat)
 
   cherrypy.config['tools.encode.on'] = True
   cherrypy.config['tools.encode.encoding'] = 'utf-8'
   cherrypy.config.update(config=wsgi_config)
 
-  cherrypy.tree.mount(Manage(ip2as), '/', config=wsgi_config)
+  cherrypy.tree.mount(Manage(), '/', config=wsgi_config)
 
   return cherrypy.tree(environ, start_response)
 
 
 if __name__ == '__main__':
+  global ip2as_
+
   syslog.openlog('ip2as_wsgi_server', logoption=syslog.LOG_PID)
   myprefix = os.path.dirname(os.path.abspath(__file__))
   wsgi_config = myprefix + '/wsgi_api.ini'
@@ -140,11 +148,12 @@ if __name__ == '__main__':
   config.read(wsgi_config)
   ip2as_dat = config.get('ip2as', 'ip2as_bin_dat').strip('\'')
 
-  ip2as = IP2AS(ip2as_dat)
+  if ip2as_ is None:
+    ip2as_ = IP2AS(ip2as_dat)
 
   cherrypy.config['tools.encode.on'] = True
   cherrypy.config['tools.encode.encoding'] = 'utf-8'
   cherrypy.config.update(config=wsgi_config)
 
   log('starting')
-  cherrypy.quickstart(Manage(ip2as), '/', config=wsgi_config)
+  cherrypy.quickstart(Manage(), '/', config=wsgi_config)
