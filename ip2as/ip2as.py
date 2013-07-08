@@ -19,52 +19,7 @@
 
 import SubnetTree
 import json
-
-
-class ASN(object):
-  def __init__(self, asn):
-    self.asn = asn
-    self.name = ''
-    self.cc = ''
-    self.rir = ''
-    self.timestamp = ''
-    self.nets = {}
-
-  def __str__(self):
-    ret = 'ASN: {0} | name: {1} | CC: {2} | RIR: {3} | timestamp: {4}'.format(self.asn, self.name, self.cc, self.rir, self.timestamp)
-
-    for n, v in self.nets.items():
-      ret += '\n\tNet: {0}, {1}'.format(n, v)
-
-    return ret
-
-  def todict(self):
-    ret = {'asn': self.asn, 'name': self.name, 'cc': self.cc, 'rir': self.rir,
-           'timestamp': self.timestamp, 'nets': {}}
-
-    for n, v in self.nets.items():
-      ret['nets'][n] = {'cc': v['cc'], 'rir': v['rir'], 'timestamp': v['timestamp']}
-
-    return ret
-
-  def tojson(self):
-    return json.dumps(self.todict())
-
-  def fromdict(self, j):
-    '''
-    "name": "EYEMG - EYEMG - interactive media group", "cc": "US", "timestamp": "20070524", "rir": "arin", "asn": "11542"
-    "nets": {"208.79.156.0/22": {"cc": "US", "timestamp": "20070621", "rir": "arin"}
-    '''
-    self.name = j['name']
-    self.cc = j['cc']
-    self.rir = j['rir']
-    self.timestamp = j['timestamp']
-
-    for net, v in j['nets'].items():
-      self.nets[net] = v
-
-  def getnet(self, net):
-    return {'asn': self.asn, 'net': net, 'name': self.name, 'cc': self.nets[net]['cc'], 'rir': self.nets[net]['rir'], 'timestamp': self.nets[net]['timestamp']}
+from asn import ASN
 
 
 class IP2AS(object):

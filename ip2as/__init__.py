@@ -1,1 +1,2 @@
-from ip2as import IP2AS, ASN
+from ip2as import IP2AS
+from asn import ASN
