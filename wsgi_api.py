@@ -58,7 +58,17 @@ def log(msg, priority=syslog.LOG_INFO):
 
 
 class IP2ASTool(cherrypy.Tool):
-  def __init__(self, ip2as_):
+  _instance = None
+
+  def __new__(cls, *args, **kwargs):
+    if not cls._instance:
+        cls._instance = super(IP2ASTool, cls).__new__(
+                            cls, *args, **kwargs)
+    return cls._instance
+
+  def __init__(self):
+    global ip2as_
+
     cherrypy.Tool.__init__(self, 'on_start_resource',
                            self.bind_session,
                            priority=20)
@@ -125,8 +135,9 @@ def application(environ, start_response):
   config.read(wsgi_config)
   ip2as_dat = config.get('ip2as', 'ip2as_bin_dat').strip('\'')
 
-  ip2as_ = IP2AS(ip2as_dat)
-  cherrypy.tools.ip2as = IP2ASTool(ip2as_)
+  if ip2as_ is None:
+    ip2as_ = IP2AS(ip2as_dat)
+  cherrypy.tools.ip2as = IP2ASTool()
 
   cherrypy.config['tools.encode.on'] = True
   cherrypy.config['tools.encode.encoding'] = 'utf-8'
@@ -138,8 +149,6 @@ def application(environ, start_response):
 
 
 if __name__ == '__main__':
-  global ip2as_
-
   syslog.openlog('ip2as_wsgi_server', logoption=syslog.LOG_PID)
   myprefix = os.path.dirname(os.path.abspath(__file__))
   wsgi_config = myprefix + '/wsgi_api.ini'
@@ -154,7 +163,8 @@ if __name__ == '__main__':
   config.read(wsgi_config)
   ip2as_dat = config.get('ip2as', 'ip2as_bin_dat').strip('\'')
 
-  ip2as_ = IP2AS(ip2as_dat)
+  if ip2as_ is None:
+    ip2as_ = IP2AS(ip2as_dat)
   cherrypy.tools.ip2as = IP2ASTool(ip2as_)
 
   cherrypy.config['tools.encode.on'] = True
