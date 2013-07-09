@@ -23,10 +23,9 @@ class IP2ASApi(object):
     self.verify_ssl = verify_ssl
     self.proxies = proxies
 
-    if len(proxies) > 0:
-      proxy = urllib2.ProxyHandler(proxies)
-      opener = urllib2.build_opener(proxy)
-      urllib2.install_opener(opener)
+    proxy = urllib2.ProxyHandler(proxies)
+    opener = urllib2.build_opener(proxy)
+    urllib2.install_opener(opener)
 
   def __request(self, method, data=None, query_args=None, extra_headers=None):
     url = '{0}/{1}'.format(self.api_url, method)
