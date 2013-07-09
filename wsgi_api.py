@@ -22,8 +22,6 @@ import json
 from ip2as.ip2as import IP2AS
 
 
-ip2as_ = None
-
 
 def is_authorized():
   if not cherrypy.request.headers.get('key', '') in cherrypy.config['api_keys']:
@@ -58,10 +56,21 @@ def log(msg, priority=syslog.LOG_INFO):
   syslog.syslog(priority, msg)
 
 
+class IP2ASTool(cherrypy.Tool):
+  def __init__(self, ip2as):
+    cherrypy.Tool.__init__(self, 'on_start_resource',
+                           self.bind_session,
+                           priority=20)
+
+    self.ip2as = ip2as
+
+  def bind_session(self):
+    cherrypy.request.ip2as = self.ip2as
+
+
 class Manage(object):
   def __init__(self):
-    global ip2as_
-    self.ip2as = ip2as_
+    pass
 
   @cherrypy.expose
   @cherrypy.tools.audit()
@@ -70,7 +79,7 @@ class Manage(object):
   @cherrypy.tools.json_out()
   def get_asn(self, asn):
     try:
-      asn_ = self.ip2as.getasn(asn)
+      asn_ = cherrypy.request.ip2as.getasn(asn)
     except KeyError:
       raise cherrypy.HTTPError(404, 'Nothing found')
 
@@ -84,7 +93,7 @@ class Manage(object):
   @cherrypy.tools.json_out()
   def get_ip(self, ip):
     try:
-      ip_ = self.ip2as.getip(ip)
+      ip_ = cherrypy.request.ip2as.getip(ip)
     except KeyError:
       raise cherrypy.HTTPError(404, 'Nothing found')
 
@@ -99,8 +108,6 @@ cherrypy.config.update({'error_page.403': error_page_403})
 
 
 def application(environ, start_response):
-  global ip2as_
-
   syslog.openlog('ip2as_wsgi_server', logoption=syslog.LOG_PID)
   myprefix = os.path.dirname(os.path.abspath(__file__))
   wsgi_config = myprefix + '/wsgi_api.ini'
@@ -115,8 +122,8 @@ def application(environ, start_response):
   config.read(wsgi_config)
   ip2as_dat = config.get('ip2as', 'ip2as_bin_dat').strip('\'')
 
-  if ip2as_ is None:
-    ip2as_ = IP2AS(ip2as_dat)
+  ip2as_ = IP2AS(ip2as_dat)
+  cherrypy.tools.ip2as = IP2ASTool(ip2as_)
 
   cherrypy.config['tools.encode.on'] = True
   cherrypy.config['tools.encode.encoding'] = 'utf-8'
@@ -128,8 +135,6 @@ def application(environ, start_response):
 
 
 if __name__ == '__main__':
-  global ip2as_
-
   syslog.openlog('ip2as_wsgi_server', logoption=syslog.LOG_PID)
   myprefix = os.path.dirname(os.path.abspath(__file__))
   wsgi_config = myprefix + '/wsgi_api.ini'
@@ -144,8 +149,8 @@ if __name__ == '__main__':
   config.read(wsgi_config)
   ip2as_dat = config.get('ip2as', 'ip2as_bin_dat').strip('\'')
 
-  if ip2as_ is None:
-    ip2as_ = IP2AS(ip2as_dat)
+  ip2as_ = IP2AS(ip2as_dat)
+  cherrypy.tools.ip2as = IP2ASTool(ip2as_)
 
   cherrypy.config['tools.encode.on'] = True
   cherrypy.config['tools.encode.encoding'] = 'utf-8'
