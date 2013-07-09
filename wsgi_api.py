@@ -21,6 +21,7 @@ except ImportError:
 import json
 from ip2as.ip2as import IP2AS
 
+ip2as_ = None
 
 
 def is_authorized():
@@ -57,12 +58,12 @@ def log(msg, priority=syslog.LOG_INFO):
 
 
 class IP2ASTool(cherrypy.Tool):
-  def __init__(self, ip2as):
+  def __init__(self, ip2as_):
     cherrypy.Tool.__init__(self, 'on_start_resource',
                            self.bind_session,
                            priority=20)
 
-    self.ip2as = ip2as
+    self.ip2as = ip2as_
 
   def bind_session(self):
     cherrypy.request.ip2as = self.ip2as
@@ -108,6 +109,8 @@ cherrypy.config.update({'error_page.403': error_page_403})
 
 
 def application(environ, start_response):
+  global ip2as_
+
   syslog.openlog('ip2as_wsgi_server', logoption=syslog.LOG_PID)
   myprefix = os.path.dirname(os.path.abspath(__file__))
   wsgi_config = myprefix + '/wsgi_api.ini'
@@ -135,6 +138,8 @@ def application(environ, start_response):
 
 
 if __name__ == '__main__':
+  global ip2as_
+
   syslog.openlog('ip2as_wsgi_server', logoption=syslog.LOG_PID)
   myprefix = os.path.dirname(os.path.abspath(__file__))
   wsgi_config = myprefix + '/wsgi_api.ini'
