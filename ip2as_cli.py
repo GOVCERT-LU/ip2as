@@ -74,7 +74,6 @@ if __name__ == '__main__':
     j = api.get_asn(options.asn)
   elif not options.ip == '':
     j = api.get_ip(options.ip)
-    print(api.get_ip_str(options.ip))
   else:
     print('Fatal error: nothing to do O_o, check parameters!')
     print()
