@@ -192,4 +192,19 @@ if __name__ == '__main__':
   for k, v in d_asn.items():
     export_asn[k] = v.todict()
 
-  print json.dumps(export_asn)
+  # json export
+  f = open(ip2as_file_path, 'wb')
+  f.write(json.dumps(export_asn))
+  f.close()
+
+
+  # msgpack export
+  try:
+    import msgpack
+
+    f = open(ip2as_file_path + '_msgpack', 'wb')
+    f.write(msgpack.packb(export_asn))
+    f.close()
+  except:
+    # ignore
+    pass
