@@ -26,7 +26,7 @@ from ip2as.asn import ASN
 # Configuration
 debug = True
 bview_file_path = 'bview'
-ip2as_file_path = 'net_as'
+ip2as_file_path = 'net_as_new'
 list_msprefix_path = 'list_as_name.txt'
 list_autnums_path = 'list_autnums.txt'
 rir_data_path = 'delegations'
