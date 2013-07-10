@@ -23,16 +23,21 @@ from asn import ASN
 
 
 class IP2AS(object):
-  def __init__(self, data_path):
+  def __init__(self, data_path, use_msgpack=False):
     self.net_as = SubnetTree.SubnetTree()
     self.d_asn = {}
     self.net_as_map = {}
+    net_as_raw = None
 
     net_as_file = open(data_path, 'rb')
-    net_as_json = json.load(net_as_file)
+    if use_msgpack:
+      import msgpack
+      net_as_raw = msgpack.unpack(net_as_file)
+    else:
+      net_as_raw = json.load(net_as_file)
     net_as_file.close()
 
-    for asn, v in net_as_json.items():
+    for asn, v in net_as_raw.items():
       '''
        "11542": {
           "name": "EYEMG - EYEMG - interactive media group", "cc": "US", "timestamp": "20070524", "rir": "arin",

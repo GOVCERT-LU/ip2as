@@ -161,11 +161,20 @@ if __name__ == '__main__':
 
   config = configparser.ConfigParser()
   config.read(wsgi_config)
-  ip2as_dat = config.get('ip2as', 'ip2as_bin_dat').strip('\'')
+  ip2as_dat = config.get('ip2as', 'ip2as_dat').strip('\'')
+  
+  try:
+    import msgpack
+    ip2as_bin_dat = config.get('ip2as', 'ip2as_bin_dat').strip('\'')
+  except ImportError, configparser.NoOptionError:
+    ip2as_bin_dat = ''
 
   if ip2as_ is None:
-    ip2as_ = IP2AS(ip2as_dat)
-  cherrypy.tools.ip2as = IP2ASTool(ip2as_)
+    if not ip2as_bin_dat == '':
+      ip2as_ = IP2AS(ip2as_bin_dat, use_msgpack=True)
+    else:
+      ip2as_ = IP2AS(ip2as_dat)
+  cherrypy.tools.ip2as = IP2ASTool()
 
   cherrypy.config['tools.encode.on'] = True
   cherrypy.config['tools.encode.encoding'] = 'utf-8'

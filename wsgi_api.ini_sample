@@ -2,4 +2,5 @@
 api_keys = ['key1', 'key2']
 
 [ip2as]
-ip2as_bin_dat = '/path/to/net_as'
+ip2as_dat = '/path/to/net_as'
+ip2as_bin_dat = '/path/to/net_as.bin'
